@@ -1,0 +1,304 @@
+asd#include <iostream>
+#include <chrono>
+
+#include <cuda.h>
+
+#include "NvDecoder/NvDecoder.h"
+#include "NvEncoder/NvEncoderCuda.h"
+#include "../Utils/NvEncoderCLIOptions.h"
+#include "../Utils/NvCodecUtils.h"
+#include "../Utils/FFmpegStreamer.h"
+#include "../Utils/FFmpegDemuxer.h"
+#include "../Utils/ColorSpace.h"
+
+// OpenCV
+
+#include "opencv2/videoio.hpp"
+
+
+simplelogger::Logger* logger = simplelogger::LoggerFactory::CreateConsoleLogger();
+
+const char* video = "../vids/4kvideo.mp4";
+
+
+void encode(CUdevice cuDevice, bool lowLatency) {
+
+	NV_ENC_BUFFER_FORMAT bufFormat_ = NV_ENC_BUFFER_FORMAT_IYUV; // which one?
+
+	CUcontext cuContext = NULL;
+	int w = 3840;
+	int h = 2160;
+
+	NV_ENC_INITIALIZE_PARAMS initializeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
+	NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
+	initializeParams.encodeConfig = &encodeConfig;
+
+	NV_ENC_PIC_PARAMS picParams = { NV_ENC_PIC_PARAMS_VER };
+
+	ck(cuCtxCreate(&cuContext, 0, cuDevice));
+
+	//initializeParams.encodeConfig = &encodeConfig;
+	NvEncoderCuda enc(cuContext, w, h, NV_ENC_BUFFER_FORMAT_IYUV);
+
+	if (lowLatency) {
+
+		enc.CreateDefaultEncoderParams(
+			&initializeParams,
+			NV_ENC_CODEC_H264_GUID,
+			NV_ENC_PRESET_P1_GUID, // what is this?
+			NV_ENC_TUNING_INFO_LOW_LATENCY); // what does this mean?
+
+		initializeParams.enableSubFrameWrite = 1; // Speedup, explain why, maybe exlude that shit, maybe ref the FPGA macroblock pipeline or whatever
+
+		encodeConfig.rcParams.averageBitRate = 15000000; // Why this?
+		encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR; // GOOD
+		encodeConfig.rcParams.multiPass = NV_ENC_MULTI_PASS_DISABLED; // GOOD
+
+		initializeParams.frameRateNum = 30;
+		initializeParams.frameRateDen = 1;
+
+		encodeConfig.rcParams.vbvBufferSize = static_cast<uint32_t>( // GOOD
+			static_cast<float>(encodeConfig.rcParams.averageBitRate) 
+			/ 
+			static_cast<float>(initializeParams.frameRateNum)
+		);
+		encodeConfig.rcParams.vbvInitialDelay = encodeConfig.rcParams.vbvBufferSize;
+
+		encodeConfig.frameIntervalP = 1; // GOOD
+
+		encodeConfig.gopLength = NVENC_INFINITE_GOPLENGTH; // why?                                             // These two prevent automatic keyframe insertion, why it is bad I do not know
+		encodeConfig.encodeCodecConfig.h264Config.idrPeriod = NVENC_INFINITE_GOPLENGTH; // why? what is IDR?   //
+		encodeConfig.encodeCodecConfig.h264Config.repeatSPSPPS = 1; // whatever
+
+		encodeConfig.encodeCodecConfig.h264Config.enableIntraRefresh = 1; // GOOD
+		encodeConfig.encodeCodecConfig.h264Config.intraRefreshPeriod = 10;
+		encodeConfig.encodeCodecConfig.h264Config.singleSliceIntraRefresh = 1;
+		encodeConfig.encodeCodecConfig.h264Config.intraRefreshCnt = 5;
+
+		encodeConfig.rcParams.enableNonRefP = 1; // what is that?
+
+		encodeConfig.rcParams.lowDelayKeyFrameScale = 1; // to not fuck up buffer delays and proc time on both sides
+
+		encodeConfig.rcParams.zeroReorderDelay = 1; // refernce formula
+
+		enc.CreateEncoder(&initializeParams);
+
+	}
+	else {
+
+	}
+
+	//NvEncoderInitParam pEncodeCLIOptions;
+	//
+	//ck(cuCtxCreate(&cuContext, 0, cuDevice));
+	//NvEncoderCuda enc(cuContext, w, h, NV_ENC_BUFFER_FORMAT_IYUV);
+	//NV_ENC_INITIALIZE_PARAMS initializeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
+	//NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
+	//initializeParams.encodeConfig = &encodeConfig;
+	////enc.CreateDefaultEncoderParams(&initializeParams, pEncodeCLIOptions.GetEncodeGUID(), pEncodeCLIOptions.GetPresetGUID(), pEncodeCLIOptions.GetTuningInfo());
+	//enc.CreateDefaultEncoderParams(
+	//		&initializeParams,
+	//			NV_ENC_CODEC_H264_GUID,
+	//	NV_ENC_PRESET_P1_GUID, // what is this?
+	//	NV_ENC_TUNING_INFO_ULTRA_LOW_LATENCY); // what does this mean?
+
+
+	//encodeConfig.gopLength = NVENC_INFINITE_GOPLENGTH;
+
+	//initializeParams.enableSubFrameWrite = 1; // Speedup, explain why, maybe exlude that shit, maybe ref the FPGA macroblock pipeline or whatever
+
+	//encodeConfig.rcParams.averageBitRate = 1500000; // Why this?
+	//encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR; // GOOD
+	//encodeConfig.rcParams.multiPass = NV_ENC_MULTI_PASS_DISABLED; // GOOD
+
+
+	//initializeParams.frameRateNum = 30;
+	//initializeParams.frameRateDen = 1;
+
+	//encodeConfig.rcParams.vbvBufferSize = static_cast<uint32_t>( // GOOD
+	//static_cast<float>(encodeConfig.rcParams.averageBitRate)
+	///
+	//static_cast<float>(initializeParams.frameRateNum)
+	//);
+	//encodeConfig.rcParams.vbvInitialDelay = encodeConfig.rcParams.vbvBufferSize;
+
+	//encodeConfig.frameIntervalP = 1; // GOOD
+
+	//encodeConfig.gopLength = NVENC_INFINITE_GOPLENGTH; // why?                                             // These two prevent automatic keyframe insertion, why it is bad I do not know
+	//encodeConfig.encodeCodecConfig.h264Config.idrPeriod = NVENC_INFINITE_GOPLENGTH; // why? what is IDR?   //
+	//encodeConfig.encodeCodecConfig.h264Config.repeatSPSPPS = 1; // whatever
+
+	//encodeConfig.encodeCodecConfig.h264Config.enableIntraRefresh = 1; // GOOD
+	//encodeConfig.encodeCodecConfig.h264Config.intraRefreshPeriod = 10;
+	//encodeConfig.encodeCodecConfig.h264Config.singleSliceIntraRefresh = 1;
+	//encodeConfig.encodeCodecConfig.h264Config.intraRefreshCnt = 5;
+
+
+	//encodeConfig.rcParams.enableNonRefP = 1; // what is that?
+
+	//encodeConfig.rcParams.lowDelayKeyFrameScale = 1; // to not fuck up buffer delays and proc time on both sides
+
+	//encodeConfig.rcParams.zeroReorderDelay = 1; // refernce formula
+
+	//pEncodeCLIOptions.SetInitParams(&initializeParams, NV_ENC_BUFFER_FORMAT_IYUV);
+
+
+	//enc.CreateEncoder(&initializeParams);
+
+	int counter = 0;
+	std::chrono::milliseconds dur_ = std::chrono::milliseconds(0);
+
+	
+
+	try
+	{
+		int frameSize = enc.GetFrameSize();
+		std::unique_ptr<uint8_t[]> pHostFrame(new uint8_t[frameSize]);
+
+		int nFrame = 0;
+		std::streamsize nRead = 0;
+
+		FFmpegStreamer streamer(AV_CODEC_ID_H264, w, h, 25, "tcp://127.0.0.1:8899");
+
+		std::ifstream inputFile("C:/Users/vladimir/Desktop/vid.yuv", std::ifstream::in | std::ifstream::binary);
+		if (!inputFile)
+		{
+			throw std::exception("can't open file");
+		}
+
+		do {
+			std::vector<std::vector<uint8_t>> vPacket;
+			nRead = inputFile.read(reinterpret_cast<char*>(pHostFrame.get()), frameSize).gcount();
+			auto start = std::chrono::high_resolution_clock::now();
+			if (nRead == frameSize)
+			{	
+				const NvEncInputFrame* encoderInputFrame = enc.GetNextInputFrame();
+
+				NvEncoderCuda::CopyToDeviceFrame(cuContext, pHostFrame.get(), 0, (CUdeviceptr)encoderInputFrame->inputPtr,
+					(int)encoderInputFrame->pitch,
+					enc.GetEncodeWidth(),
+					enc.GetEncodeHeight(),
+					CU_MEMORYTYPE_HOST,
+					encoderInputFrame->bufferFormat,
+					encoderInputFrame->chromaOffsets,
+					encoderInputFrame->numChromaPlanes);
+
+				enc.EncodeFrame(vPacket);
+			}
+			else
+			{
+				enc.EndEncode(vPacket);
+			}
+			// Finishing time.
+			auto stop = std::chrono::high_resolution_clock::now();
+			auto time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+
+			// Printing the measured time.
+			std::cout << "encoding: " << time.count() << " ms" << std::endl;
+			dur_ += time;
+			++counter;
+
+
+			for (std::vector<uint8_t>& packet : vPacket) {
+				streamer.Stream(packet.data(), (int)packet.size(), nFrame++);
+			}
+		} while (nRead == frameSize);
+
+		enc.DestroyEncoder();
+		inputFile.close();
+
+		std::cout << std::flush << "Total frames encoded: " << nFrame << std::endl << std::flush;
+	}
+	catch (const std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+
+	auto resTime = std::chrono::duration_cast<std::chrono::milliseconds>(dur_);
+	std::cout << "avg encoding: " << resTime.count() / float(counter) << " ms" << std::endl;
+	//dur_ = std::chrono::milliseconds(0);
+	
+}
+
+void decode(CUdevice cudaDevice_) {
+
+	CUdeviceptr dpRgbFrame = 0;
+	int counter = 0;
+	std::chrono::milliseconds dur_ = std::chrono::milliseconds(0);
+	try
+	{
+		CUcontext cuContext = NULL;
+		ck(cuCtxCreate(&cuContext, 0, cudaDevice_));
+
+		FFmpegDemuxer demuxer("tcp://127.0.0.1:8899?listen");
+
+		NvDecoder dec(cuContext, false, FFmpeg2NvCodecId(demuxer.GetVideoCodec()), true);
+
+		uint8_t* pVideo = NULL;
+		int nVideoBytes = 0;
+		int nFrame = 0;
+		std::ofstream outputFile("C:/Users/vladimir/Desktop/outMine.yuv", std::ios::out | std::ios::binary);
+		if (!outputFile)
+		{
+			throw std::exception("can't open output file");
+		}
+		
+		int w = demuxer.GetWidth();
+		int h = demuxer.GetHeight();
+
+		do {
+
+			demuxer.Demux(&pVideo, &nVideoBytes);
+			uint8_t* pFrame;
+
+			auto start = std::chrono::high_resolution_clock::now();
+			int nFrameReturned = dec.Decode(pVideo, nVideoBytes, CUVID_PKT_ENDOFPICTURE);
+			auto stop = std::chrono::high_resolution_clock::now();
+			auto time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+
+			// Printing the measured time.
+			std::cout << "decoding: " << time.count() << " ms" << std::endl;
+			dur_ += time;
+			++counter;
+
+			for (int i = 0; i < nFrameReturned; i++) {
+				pFrame = dec.GetFrame();
+
+				outputFile.write(reinterpret_cast<char*>(pFrame), dec.GetFrameSize());
+
+				nFrame++;
+			}
+
+		} while (nVideoBytes);
+
+		outputFile.close();
+
+		/*std::cout << "Total frame decoded: " << nFrame << std::endl
+			<< "Saved in file " << szOutFilePath << " in "
+			<< (eOutputFormat == native ? (dec.GetBitDepth() == 8 ? "nv12" : "p010") : (eOutputFormat == bgra ? "bgra" : "bgra64"))
+			<< " format" << std::endl;*/
+	}
+	catch (const std::exception& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
+	auto resTime = std::chrono::duration_cast<std::chrono::milliseconds>(dur_);
+	std::cout << "avg decoding: " << resTime.count() / float(counter) << " ms" << std::endl;
+
+}
+
+int main()
+{
+	ck(cuInit(0));
+
+	CUdevice cudaDevice = 0;
+	ck(cuDeviceGet(&cudaDevice, 0));
+
+
+	NvThread decProc(std::thread(encode, cudaDevice, true));
+	NvThread encProc(std::thread(decode, cudaDevice));
+
+	encProc.join();
+	decProc.join();
+}
+

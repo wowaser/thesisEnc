@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <opencvVersion>452d</opencvVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <_PropertySheetDisplayName>opencv-d</_PropertySheetDisplayName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)libraries\OpenCV\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)libraries\OpenCV\x64\vc16\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opencv_aruco$(opencvVersion).lib;opencv_bgsegm$(opencvVersion).lib;opencv_bioinspired$(opencvVersion).lib;opencv_calib3d$(opencvVersion).lib;opencv_ccalib$(opencvVersion).lib;opencv_core$(opencvVersion).lib;opencv_cudaarithm$(opencvVersion).lib;opencv_cudabgsegm$(opencvVersion).lib;opencv_cudacodec$(opencvVersion).lib;opencv_cudafeatures2d$(opencvVersion).lib;opencv_cudafilters$(opencvVersion).lib;opencv_cudaimgproc$(opencvVersion).lib;opencv_cudalegacy$(opencvVersion).lib;opencv_cudaobjdetect$(opencvVersion).lib;opencv_cudaoptflow$(opencvVersion).lib;opencv_cudastereo$(opencvVersion).lib;opencv_cudawarping$(opencvVersion).lib;opencv_cudev$(opencvVersion).lib;opencv_datasets$(opencvVersion).lib;opencv_dnn$(opencvVersion).lib;opencv_dnn_objdetect$(opencvVersion).lib;opencv_dnn_superres$(opencvVersion).lib;opencv_dpm$(opencvVersion).lib;opencv_face$(opencvVersion).lib;opencv_features2d$(opencvVersion).lib;opencv_flann$(opencvVersion).lib;opencv_fuzzy$(opencvVersion).lib;opencv_gapi$(opencvVersion).lib;opencv_hfs$(opencvVersion).lib;opencv_highgui$(opencvVersion).lib;opencv_imgcodecs$(opencvVersion).lib;opencv_imgproc$(opencvVersion).lib;opencv_img_hash$(opencvVersion).lib;opencv_intensity_transform$(opencvVersion).lib;opencv_line_descriptor$(opencvVersion).lib;opencv_ml$(opencvVersion).lib;opencv_objdetect$(opencvVersion).lib;opencv_optflow$(opencvVersion).lib;opencv_phase_unwrapping$(opencvVersion).lib;opencv_photo$(opencvVersion).lib;opencv_plot$(opencvVersion).lib;opencv_quality$(opencvVersion).lib;opencv_rapid$(opencvVersion).lib;opencv_reg$(opencvVersion).lib;opencv_saliency$(opencvVersion).lib;opencv_shape$(opencvVersion).lib;opencv_stereo$(opencvVersion).lib;opencv_stitching$(opencvVersion).lib;opencv_structured_light$(opencvVersion).lib;opencv_superres$(opencvVersion).lib;opencv_surface_matching$(opencvVersion).lib;opencv_text$(opencvVersion).lib;opencv_tracking$(opencvVersion).lib;opencv_video$(opencvVersion).lib;opencv_videoio$(opencvVersion).lib;opencv_videostab$(opencvVersion).lib;opencv_xfeatures2d$(opencvVersion).lib;opencv_ximgproc$(opencvVersion).lib;opencv_xobjdetect$(opencvVersion).lib;opencv_xphoto$(opencvVersion).lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /d  "$(SolutionDir)libraries\OpenCV\x64\vc16\bin\*$(opencvVersion).dll" "$(OutDir)"
+%(Command)
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="opencvVersion">
+      <Value>$(opencvVersion)</Value>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

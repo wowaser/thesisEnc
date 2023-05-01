@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)libraries\CUDA\v11.3\include;$(SolutionDir)libraries\Video_Codec_SDK_11.1.5\Samples\NvCodec\NvEncoder;$(SolutionDir)libraries\Video_Codec_SDK_11.1.5\Samples\NvCodec\NvDecoder;$(SolutionDir)libraries\Video_Codec_SDK_11.1.5\Samples\NvCodec;$(SolutionDir)libraries\Video_Codec_SDK_11.1.5\Samples\AppEncode\Common;$(SolutionDir)libraries\Video_Codec_SDK_11.1.5\Samples\AppDecode\Common;$(SolutionDir)libraries\Video_Codec_SDK_11.1.5\Samples\External\FFmpeg\include;$(SolutionDir)libraries\Video_Codec_SDK_11.1.5\Samples\Utils;$(SolutionDir)libraries\Video_Codec_SDK_11.1.5\Samples;$(SolutionDir)libraries\Video_Codec_SDK_11.1.5\Interface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)libraries\Video_Codec_SDK_11.1.5\Lib\x64;$(SolutionDir)libraries\CUDA\v11.3\lib\x64;$(SolutionDir)libraries\Video_Codec_SDK_11.1.5\Samples\External\FFmpeg\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>nvcuvid.lib;nvencodeapi.lib;cudart_static.lib;cuda.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /d  "$(SolutionDir)libraries\CUDA\v11.3\bin\*.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+</Project>
