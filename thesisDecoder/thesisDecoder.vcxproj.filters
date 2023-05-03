@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\NvCodec">
+      <UniqueIdentifier>{5aad614c-3d1f-437b-b251-c0bcb992a71b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="thesisDecoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\Video_Codec_SDK_11.1.5\Samples\NvCodec\NvDecoder\NvDecoder.cpp">
+      <Filter>Source Files\NvCodec</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\Video_Codec_SDK_11.1.5\Samples\NvCodec\NvEncoder\NvEncoder.cpp">
+      <Filter>Source Files\NvCodec</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\Video_Codec_SDK_11.1.5\Samples\NvCodec\NvEncoder\NvEncoderCuda.cpp">
+      <Filter>Source Files\NvCodec</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\Video_Codec_SDK_11.1.5\Samples\NvCodec\NvEncoder\NvEncoderOutputInVidMemCuda.cpp">
+      <Filter>Source Files\NvCodec</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

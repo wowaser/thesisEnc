@@ -13,8 +13,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{901855a8-c60e-4a9c-b302-fb73d4ed6109}</ProjectGuid>
-    <RootNamespace>thesisEncoder</RootNamespace>
+    <ProjectGuid>{cc71fb51-ec5c-4d57-b4b2-8ead3c0618c6}</ProjectGuid>
+    <RootNamespace>thesisDecoder</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -39,14 +39,14 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\libraries\opencv-4.2-d.props" />
-    <Import Project="..\libraries\Video_Codec_11.1.5.props" />
     <Import Project="..\libraries\uvgrtp.props" />
+    <Import Project="..\libraries\Video_Codec_11.1.5.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\libraries\opencv-4.2.props" />
-    <Import Project="..\libraries\Video_Codec_11.1.5.props" />
     <Import Project="..\libraries\uvgrtp.props" />
+    <Import Project="..\libraries\Video_Codec_11.1.5.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -61,7 +61,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -76,7 +75,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -86,18 +84,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\libraries\Video_Codec_SDK_11.1.5\Samples\NvCodec\NvDecoder\NvDecoder.cpp" />
+	<ClCompile Include="..\libraries\Video_Codec_SDK_11.1.5\Samples\NvCodec\NvDecoder\NvDecoder.cpp" />
     <ClCompile Include="..\libraries\Video_Codec_SDK_11.1.5\Samples\NvCodec\NvEncoder\NvEncoder.cpp" />
     <ClCompile Include="..\libraries\Video_Codec_SDK_11.1.5\Samples\NvCodec\NvEncoder\NvEncoderCuda.cpp" />
     <ClCompile Include="..\libraries\Video_Codec_SDK_11.1.5\Samples\NvCodec\NvEncoder\NvEncoderOutputInVidMemCuda.cpp" />
-    <ClCompile Include="thesisEncoder.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\libraries\Video_Codec_SDK_11.1.5\Samples\Utils\ColorSpace.cu" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\libraries\Video_Codec_SDK_11.1.5\Samples\Utils\FFmpegDemuxer.h" />
-    <ClInclude Include="..\libraries\Video_Codec_SDK_11.1.5\Samples\Utils\FFmpegStreamer.h" />
+    <ClCompile Include="thesisDecoder.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
