@@ -10,7 +10,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)libraries\Video_Codec_SDK_11.1.5\Lib\x64;$(SolutionDir)libraries\CUDA\v11.3\lib\x64;$(SolutionDir)libraries\Video_Codec_SDK_11.1.5\Samples\External\FFmpeg\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>nvcuvid.lib;nvencodeapi.lib;cudart_static.lib;cuda.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>nvcuvid.lib;nvencodeapi.lib;cudart_static.lib;cuda.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y /d  "$(SolutionDir)libraries\CUDA\v11.3\bin\*.dll" "$(OutDir)"</Command>
