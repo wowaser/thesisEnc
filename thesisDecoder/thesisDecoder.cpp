@@ -65,8 +65,13 @@ int main()
 
 
 	int nFrame = 0;
-	std::chrono::milliseconds dur_ = std::chrono::milliseconds(0);
+
 	CUdeviceptr clrGpuPtr = 0;
+
+	std::ofstream file;
+	file.open("receiverStats.csv");
+	file << "network" << ';' << "decode" << ";" << "postproc" << ";" << "render" << "\n";
+
 
 	bool first = true;
 	while (true) {
@@ -76,19 +81,20 @@ int main()
 			std::cout << "pulled zero" << std::endl;
 			continue;
 		}
+		
+		std::string fileEntry;
 
-		//std::cout <<"frame: " <<  frame->header.timestamp << std::endl;
-		//std::cout << "us: " << createTs() << std::endl;
 
-		std::cout << "latency: " << createTs() - frame->header.timestamp << "\n\n";
+		//std::cout << "latency: " << createTs() - frame->header.timestamp << "\n\n";
+		fileEntry += std::to_string(createTs() - frame->header.timestamp) + ";";
 
 		auto start = std::chrono::high_resolution_clock::now();
 		int framesReturned = dec->Decode(frame->payload, static_cast<int>(frame->payload_len), CUVID_PKT_ENDOFPICTURE);
-		auto stop = std::chrono::high_resolution_clock::now();
-		auto time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-		// Printing the measured time.
-		//std::cout << "decoding: " << time.count() << " ms" << std::endl;
-		dur_ += time;
+		auto stopDec = std::chrono::high_resolution_clock::now();
+		auto decDur = std::chrono::duration_cast<std::chrono::milliseconds>(stopDec - start);
+		fileEntry += std::to_string(decDur.count()) + ';';
+
+
 		nFrame++;
 
 		if (framesReturned > 0) {
@@ -104,11 +110,18 @@ int main()
 			Nv12ToColor32<BGRA32>(dec->GetFrame(), w, (uint8_t*)clrGpuPtr, 4 * w, w, h, frameInfo.video_signal_description.matrix_coefficients);
 			cv::cuda::GpuMat gpuFrame = cv::cuda::GpuMat(h, w, CV_8UC4, (uint8_t*)clrGpuPtr);
 
+			auto stopPost = std::chrono::high_resolution_clock::now();
+			auto postDur = std::chrono::duration_cast<std::chrono::milliseconds>(stopPost - stopDec);
+			fileEntry += std::to_string(postDur.count()) + ';';
+
 			if (!gpuFrame.empty()) {
 				cv::namedWindow("output", cv::WINDOW_OPENGL);
 				cv::imshow("output", gpuFrame);
 				if (cv::waitKey(1) == 27) break;
 			}
+			auto stopRend = std::chrono::high_resolution_clock::now();
+			auto rendDur = std::chrono::duration_cast<std::chrono::milliseconds>(stopRend - stopPost);
+			fileEntry += std::to_string(rendDur.count()) + ';';
 		}
 		else {
 			std::cout << "frames returned 0" << std::endl;

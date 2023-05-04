@@ -54,8 +54,6 @@ uint32_t createTs()
 }
 
 
-
-
 void createEncParams(bool lowLatency, NV_ENC_INITIALIZE_PARAMS* initializeParams)
 {
 	NV_ENC_CONFIG* encodeConfig = initializeParams->encodeConfig;
@@ -128,13 +126,13 @@ int main()
 
 	// Streaming library
 	uvgrtp::context ctx;
-	uvgrtp::session* sess = ctx.create_session("192.168.225.39");
+	uvgrtp::session* sess = ctx.create_session("80.186.144.190");
 	uvgrtp::media_stream* sender = sess->create_stream(8888, 8889, RTP_FORMAT_H264, RCE_NO_FLAGS);
 
 
 
 	cv::VideoCapture cap(0);
-	cap.open(0);
+	cap.open(1);
 
 	if (!cap.isOpened()) { return -1; }
 
@@ -144,22 +142,29 @@ int main()
 	cv::Mat frame;
 	cv::cuda::GpuMat gFrame;
 
-	//cv::namedWindow("GPU", cv::WINDOW_OPENGL);
-
+	std::ofstream file;
+	file.open("senderStats.csv");
+	file << "preproc" << ';' << "encoding" << "\n";
 
 
 	int counter = 0;
-	std::chrono::milliseconds dur_ = std::chrono::milliseconds(0);
 
 	while (true) {
 
-		// Acquisition
+
+		std::string fileEntry;
+		auto start = std::chrono::high_resolution_clock::now();
+
+		// Preprocessing
 		cap >> frame;
+
 		gFrame.upload(frame);
 		cv::cuda::cvtColor(gFrame, gFrame, cv::ColorConversionCodes::COLOR_BGR2RGBA);
 
-
-		auto start = std::chrono::high_resolution_clock::now();
+		auto preProcTP = std::chrono::high_resolution_clock::now();
+		auto procTime = std::chrono::duration_cast<std::chrono::microseconds>(preProcTP - start);
+		fileEntry += std::to_string(procTime.count()) + ';';
+		
 		// Encoding
 		const NvEncInputFrame* encoderInputFrame = enc->GetNextInputFrame();
 		std::vector<std::vector<uint8_t>> vPacket;
@@ -178,21 +183,19 @@ int main()
 
 		enc->EncodeFrame(vPacket, &picParams);
 
-		// Finishing time.
-		auto stop = std::chrono::high_resolution_clock::now();
-		auto time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+		auto encTP = std::chrono::high_resolution_clock::now();
+		auto encTime = std::chrono::duration_cast<std::chrono::microseconds>(encTP - preProcTP);
+		fileEntry += std::to_string(encTime.count());
 
-		// Printing the measured time.
-		//std::cout << "encoding: " << time.count() << " ms" << std::endl;
-		dur_ += time;
+		file << fileEntry << "\n";
+
 		++counter;
-
-
-
 		for (std::vector<uint8_t>& packet : vPacket) {
 			sender->push_frame(packet.data(), packet.size(), createTs(), RTP_NO_H26X_SCL);
 		}
 	}
+
+	file.close();
 
 	ctx.destroy_session(sess);
 	enc->DestroyEncoder();
